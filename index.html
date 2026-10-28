@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#120F0E">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>IGNIS</title>
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<base target="_blank">
+</head>
+<body>
+    <!-- ===== PORTÃO DA TAVERNA (login) ===== -->
+    <div class="auth-screen" id="auth-screen" data-state="loading">
+        <div class="brand-bar">
+            <span class="brand-emblem"><svg class="brand-flame" aria-hidden="true"><use href="#ignis-flame"/></svg></span>
+            <span class="brand-name">IGNIS</span>
+        </div>
+        <p class="auth-loading">Abrindo os portões…</p>
+        <div class="card auth-card">
+            <h2 class="auth-title">Portões da Taverna</h2>
+            <p class="modal-subtitle">Identifique-se para continuar sua jornada</p>
+            <p class="auth-setup" id="auth-setup" hidden>⚠️ Firebase ainda não configurado: edite <code>firebase-config.js</code>. Enquanto isso, use o modo local.</p>
+            <button type="button" class="btn-google" id="google-btn"><span class="g-mark">G</span> Entrar com Google</button>
+            <div class="auth-or"><span>ou</span></div>
+            <form id="auth-form">
+                <div class="form-group">
+                    <label for="auth-email">E-MAIL</label>
+                    <input id="auth-email" type="email" autocomplete="email" required placeholder="heroi@taverna.com">
+                </div>
+                <div class="form-group">
+                    <label for="auth-pass">SENHA</label>
+                    <input id="auth-pass" type="password" autocomplete="current-password" minlength="6" required placeholder="mínimo 6 caracteres">
+                </div>
+                <p class="auth-error" id="auth-error" role="alert"></p>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary" id="login-btn">Entrar</button>
+                    <button type="button" class="btn btn-secondary" id="signup-btn">Criar conta</button>
+                </div>
+            </form>
+            <button type="button" class="btn btn-secondary btn-guest" id="guest-btn" hidden>Continuar sem conta (modo local)</button>
+        </div>
+    </div>
+    <script>
+        setTimeout(function () {
+            var s = document.getElementById('auth-screen');
+            if (s && s.dataset.state === 'loading') {
+                s.dataset.state = 'login';
+                document.getElementById('auth-error').textContent = 'Não foi possível carregar o login. Verifique a conexão e recarregue.';
+            }
+        }, 10000);
+    </script>
+
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="ignis-flame" viewBox="248 151 583 777"><path d="M758,547 L751,544 L741,547 L485,763 L485,928 L488,927 L494,922 L519,909 L543,894 L571,874 L592,857 L631,820 L654,794 L672,771 L695,737 L710,711 L725,681 L738,650 L750,615 L763,561 L763,554Z M825,212 L823,211 L814,211 L810,213 L466,547 L469,617 L470,618 L470,636 L471,637 L471,655 L472,656 L472,674 L473,675 L473,691 L474,692 L474,711 L475,712 L513,690 L543,670 L574,647 L604,622 L666,560 L699,520 L720,491 L749,445 L766,414 L785,374 L800,337 L818,282 L831,228 L831,219Z M614,205 L611,204 L609,206 L604,222 L595,241 L585,251 L580,254 L563,259 L544,259 L525,255 L514,251 L491,238 L459,207 L441,183 L430,163 L426,152 L424,151 L420,159 L419,169 L418,170 L418,245 L417,246 L416,271 L415,272 L412,293 L408,306 L396,329 L382,344 L375,349 L363,355 L358,356 L342,363 L332,370 L319,384 L306,407 L298,429 L292,453 L279,535 L271,545 L259,553 L251,562 L250,579 L249,580 L249,594 L248,595 L248,657 L279,627 L307,604 L436,509 L500,459 L545,420 L579,386 L593,370 L609,349 L625,323 L634,302 L639,282 L640,263 L639,262 L639,254 L634,236 L627,222Z"/></symbol></svg>
+    <div class="brand-bar">
+        <span class="brand-emblem"><svg class="brand-flame" aria-hidden="true"><use href="#ignis-flame"/></svg></span>
+        <span class="brand-name">IGNIS</span>
+    </div>
+
+    <!-- ===== HEADER ===== -->
+    <header class="app-header">
+        <div class="header-stats">
+            <div class="level-shield" aria-label="Nível do herói">
+                <span class="shield-label">Nível</span>
+                <span class="shield-num" id="player-level">1</span>
+            </div>
+            <div class="stat-block xp-block">
+                <div class="xp-bar-header">
+                    <div class="xp-fill-header" id="header-xp-fill" style="width: 0%"></div>
+                </div>
+                <span class="xp-text-header">📜 <span id="header-current-xp">0</span> / <span id="header-max-xp">100</span> XP · ❤️ <span id="header-hp">100</span>/<span id="header-max-hp">100</span></span>
+            </div>
+            <div class="stat-block gold-block">
+                <span class="stat-label">Bolsa</span>
+                <span class="stat-value gold-value">🪙 <span id="player-gold">0</span></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+        <!-- ABA MISSÕES -->
+        <section class="tab-content active" id="tab-missoes">
+            <h2 class="section-title">⚔️ Missões Ativas</h2>
+            <div id="boss-banner"></div>
+            <div id="quest-board" class="feed">
+                <!-- Injetado via JS -->
+            </div>
+        </section>
+
+        <!-- ABA LOJA -->
+        <section class="tab-content" id="tab-loja">
+            <h2 class="section-title">🏪 Loja de Recompensas</h2>
+            <div class="gold-display">
+                <span class="gold-big">🪙 <span id="shop-gold">0</span></span>
+                <span class="gold-label">ouro disponível</span>
+            </div>
+            <div id="shop-list" class="shop-feed">
+                <!-- Injetado via JS -->
+            </div>
+        </section>
+
+        <!-- ABA PERFIL -->
+        <section class="tab-content" id="tab-perfil">
+            <h2 class="section-title">🛡️ Perfil do Herói</h2>
+            <div class="profile-card">
+                <div class="profile-avatar" id="profile-avatar">🧙</div>
+                <h3 class="profile-name">Aventureiro</h3>
+                <p class="profile-rank">Rank: <span id="profile-rank">E</span></p>
+
+                <div class="profile-xp-bar">
+                    <div class="profile-xp-fill" id="profile-xp-fill" style="width: 0%"></div>
+                </div>
+                <p class="profile-xp-text">📜 <span id="profile-current-xp">0</span> / <span id="profile-max-xp">100</span> XP</p>
+
+                <div class="profile-stats-grid">
+                    <div class="profile-stat">
+                        <span class="profile-stat-icon">📊</span>
+                        <span class="profile-stat-value" id="stat-level">1</span>
+                        <span class="profile-stat-label">Nível</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="profile-stat-icon">✅</span>
+                        <span class="profile-stat-value" id="stat-completed">0</span>
+                        <span class="profile-stat-label">Missões</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="profile-stat-icon">📜</span>
+                        <span class="profile-stat-value" id="stat-total-xp">0</span>
+                        <span class="profile-stat-label">XP Total</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="profile-stat-icon">🪙</span>
+                        <span class="profile-stat-value" id="stat-gold">0</span>
+                        <span class="profile-stat-label">Ouro</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="profile-stat-icon">👝</span>
+                        <span class="profile-stat-value" id="stat-spent">0</span>
+                        <span class="profile-stat-label">Gasto</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="profile-stat-icon">🏆</span>
+                        <span class="profile-stat-value" id="stat-rank">E</span>
+                        <span class="profile-stat-label">Rank</span>
+                    </div>
+                </div>
+                <div id="profile-gear" class="profile-gear"></div>
+                <button type="button" class="btn btn-secondary btn-logout" id="logout-btn">Sair da Taverna</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== FAB ===== -->
+    <button class="fab" id="add-btn" aria-label="Nova Missão"><span class="fab-plus">+</span></button>
+
+    <!-- ===== BOTTOM NAV ===== -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-tab="missoes">
+            <span class="nav-icon">⚔️</span>
+            <span class="nav-label">Missões</span>
+        </button>
+        <button class="nav-item" data-tab="loja">
+            <span class="nav-icon">🏪</span>
+            <span class="nav-label">Loja</span>
+        </button>
+        <button class="nav-item" data-tab="perfil">
+            <span class="nav-icon">🛡️</span>
+            <span class="nav-label">Perfil</span>
+        </button>
+    </nav>
+
+    <!-- ===== MODAL: CRIAR MISSÃO ===== -->
+    <div id="create-overlay" class="modal-overlay">
+        <div id="create-modal" class="modal-card create-modal">
+            <h2>⚔️ Nova Missão</h2>
+            <p class="modal-subtitle">Forje uma nova tarefa para seu herói</p>
+
+            <div class="form-group">
+                <label for="quest-name">Nome da Missão</label>
+                <input type="text" id="quest-name" placeholder="Ex: Estudar JavaScript" maxlength="50">
+            </div>
+
+            <div class="form-group">
+                <label for="quest-desc">Descrição</label>
+                <textarea id="quest-desc" placeholder="Ex: Revisar closures e promises" rows="2" maxlength="120"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="quest-diff">Dificuldade</label>
+                    <select id="quest-diff">
+                        <option value="easy">Fácil (Esmeralda)</option>
+                        <option value="medium" selected>Médio (Topázio)</option>
+                        <option value="hard">Difícil (Rubi)</option>
+                        <option value="epic">Épico (Ametista)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="quest-days">Prazo (dias)</label>
+                    <input type="number" id="quest-days" value="3" min="1" max="30">
+                </div>
+            </div>
+
+            <label class="weak-row" id="weak-row" hidden><input type="checkbox" id="quest-weak"><span>🎯 Esta missão explora a fraqueza do chefe? <small id="weak-hint"></small></span></label>
+            <div class="reward-preview" id="reward-preview">
+                <span class="reward-preview-label">Recompensa estimada:</span>
+                <span class="reward-preview-value">📜 1-10 XP | 🪙 1-5 Ouro</span>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="create-cancel">Cancelar</button>
+                <button class="btn btn-primary" id="create-submit">Criar Missão</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: RECOMPENSA ===== -->
+    <div id="overlay" class="modal-overlay">
+        <div id="modal" class="modal-card reward-modal">
+            <div id="lottie-container"></div>
+            <h2>Missão Concluída! 🏆</h2>
+            <p id="modal-desc">Você derrotou a tarefa e evoluiu seu herói.</p>
+            <div class="xp-gain" id="modal-reward">+100 XP | +50 Ouro</div>
+            <div class="level-up-banner" id="level-up-banner" style="display:none">
+                <span>🎉 LEVEL UP! Nível <span id="new-level">2</span></span>
+            </div>
+            <button id="close-btn" class="btn btn-collect">Coletar Recompensa</button>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
+    <!-- CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@motionone/dom/dist/motion.prod.js"></script>
+    <div id="boss-overlay" class="modal-overlay"><div class="modal-card boss-modal" id="boss-modal"></div></div>
+    <script src="script.js"></script>
+    <script src="boss.js"></script>
+    <script type="module" src="auth.js"></script>
+</body>
+</html>
